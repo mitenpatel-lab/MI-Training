@@ -1,22 +1,28 @@
-const users = [
-  {
-    "id": 1,
-    "username": "admin",
-    "password": "12345",
-    "role": "admin"
-  },
-  {
-    "id": 3,
-    "username": "jay",
-    "password": "12345678",
-    "role": "user"
-  },
-  {
-    "id": 4,
-    "username": "rahul",
-    "password": "12345678",
-    "role": "user"
-  }
-];
+const mongoose = require('mongoose');
 
-module.exports = users;
+
+const userSchema = new mongoose.Schema({
+
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    required: true,
+    enum: {
+      values: ['user', 'admin'],
+      message: '{VALUE} is not a valid role. Allowed roles are: user, admin.'
+    },
+    default: 'user'
+  },
+})
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;

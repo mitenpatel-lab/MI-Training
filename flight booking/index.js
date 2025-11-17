@@ -1,12 +1,16 @@
 require('dotenv').config();
-
-const express = require('express');
-const app = express();
+const connectDB = require('./db/config');
 const path = require('path');
 const userroute = require('./routes/userroute');
 const flightRoute = require('./routes/flightRoute');
+const express = require('express');
 
-//app.use(express.static(path.join(__dirname, 'views')));
+
+const app = express();
+
+
+connectDB();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

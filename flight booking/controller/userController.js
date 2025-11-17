@@ -1,16 +1,17 @@
-const users = require('../model/users');
+const User = require('../model/users');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const path = require('path');
 
 const SECRET_KEY = process.env.SECRET_KEY;
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
 
-    let role = "";
     try {
         const { username, password } = req.body;
-        const user = users.find(u => u.username === username && u.password === password);
+        const user = await User.findOne({ username: username });
+        console.log(user);
         if (!user) {
+            return res.status(401).json({ success: false, message: 'Username/Password is incorrect' });
+        }
+        if (user.password != password) {
             return res.status(401).json({ success: false, message: 'Username/Password is incorrect' });
         }
         const token = jwt.sign(
@@ -18,18 +19,19 @@ exports.login = (req, res) => {
             SECRET_KEY,
             { expiresIn: '1h' }
         );
-        role = user.role;
-        //debugger;
-        res.json({ success: true, token, username: user.username, role: role });
+
+        console.log(user);
+        res.json({ success: true, token, user });
     } catch (e) {
         console.log(e);
 
     }
+
 }
 
-exports.getAllUser = (req, res) => {
+exports.getAllUser = async (req, res) => {
 
-    let user = users.filter(user => user.role != "admin");
+    let user = await User.find({ role: { $ne: 'admin' } });
 
     console.log(user);
     try {
@@ -40,76 +42,40 @@ exports.getAllUser = (req, res) => {
     }
 }
 
-exports.register = (req, res) => {
+exports.register = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = users.find(u => u.username === username);
-        const usersFile = path.join(__dirname, '../model/users.js');
-
-        if (user) {
-            return res.status(401).json({ success: false, message: 'Username already Taken' });
-        }
-        const newUser = {
-            id: users.length ? users[users.length - 1].id + 1 : 1,
-            username,
-            password,
-            role: "user"
-        };
-
-        users.push(newUser);
-        saveUser(users);
-
-        //console.log(users);
-        function saveUser(usersArray) {
-            const content =
-                "const users = " +
-                JSON.stringify(usersArray, null, 2) +
-                ";\n\nmodule.exports = users;\n";
-
-            fs.writeFileSync(usersFile, content, 'utf-8');
-
-
-        }
-
-        // console.log(username);
-
-        res.json({ success: true, username: username });
-    } catch (e) {
-        console.log(e);
-
-    }
-}
-exports.update = (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const usersFile = path.join(__dirname, '../model/users.js');
-
-        const updateduser = users.map((user) => {
-
-            if (user.username == username) {
-                return { ...user, password: password };
-            }
-            return user;
-
-
+        const newUser = new User({
+            username: username,
+            password: password
         });
+        const user = await User.create(newUser);
+        res.status(200).json({ success: true, })
 
-        saveUser(updateduser);
-
-        //console.log(users);
-        function saveUser(usersArray) {
-            const content =
-                "const users = " +
-                JSON.stringify(usersArray, null, 2) +
-                ";\n\nmodule.exports = users;\n";
-
-            fs.writeFileSync(usersFile, content, 'utf-8');
-
+    } catch (e) {
+        if (e.code == 11000) {
+            res.status(401).json({ success: false, message: 'Username already Taken' });
 
         }
+        console.log(e);
+
+    }
+}
+exports.update = async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
 
-        res.json({ success: true, message: "Updated" });
+        let user = await User.findOne({ username });
+        console.log(user);
+        if (user) {
+
+            user.password = password;
+            await user.save();
+            return res.json({ success: true, message: "Updated" });
+
+        }
+        res.json(user.message)
     } catch (e) {
         console.log(e);
 
@@ -117,41 +83,24 @@ exports.update = (req, res) => {
 }
 
 
-exports.deleteUser = (req, res) => {
+exports.deleteUser = async (req, res) => {
     try {
         const { username } = req.body;
-        const usersFile = path.join(__dirname, '../model/users.js');
 
-        const updateduser = users.map((user) => {
+        const user = await User.deleteOne({ username })
 
-            if (user.username == username) {
-                return;
-            }
-            return user;
+        res.status(200).json({ message: "delete successfully", user })
+    }
 
 
-        });
-
-        saveUser(updateduser);
-
-        function saveUser(usersArray) {
-            const content =
-                "const users = " +
-                JSON.stringify(usersArray, null, 2) +
-                ";\n\nmodule.exports = users;\n";
-
-            fs.writeFileSync(usersFile, content, 'utf-8');
-
-
-        }
-
-
-        res.json({ success: true, message: "User Deleted" });
-    } catch (e) {
+    catch (e) {
         console.log(e);
 
+
     }
+
 }
+
 
 
 

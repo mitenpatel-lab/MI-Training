@@ -98,6 +98,8 @@
             });
 
             const data = await res.json();
+
+            console.log(data.success)
             const output = document.getElementById('response');
 
             if (data.success) {
@@ -105,9 +107,9 @@
                 localStorage.setItem("username", username);
                 localStorage.setItem("password", password);
 
-                output.innerText = `✅ Welcome ${data.username}! Redirecting...`;
+                output.innerText = `✅ Welcome ${username}! Redirecting...`;
                 output.style.color = 'green';
-                if (data.role == "admin")
+                if (data.user.role == "admin")
                     window.location.href = '/adminpanel.html';
 
                 setTimeout(() => {
