@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 export default function FlightFinder() {
     const [flights, setFlights] = useState([]);
+    const [search, setSearch] = useState(false);
+    const [airlines, setairline] = useState([]);
+
     const [baseFilters, setBaseFilters] = useState({});
     const token = localStorage.getItem("token");
 
@@ -22,9 +25,12 @@ export default function FlightFinder() {
             logout();
             return;
         }
+        const response = await res.json();
+        if (queryParams.length > 0 && response.data.length > 0)
+            setSearch(true);
 
-        const data = await res.json();
-        setFlights(res.status === 200 ? data : []);
+        setairline(response.airline);
+        setFlights(res.status === 200 ? response.data : []);
     }
 
     const handleSearch = async () => {
@@ -46,7 +52,6 @@ export default function FlightFinder() {
         if (!baseFilters.from || !baseFilters.to) return;
 
         const airline = document.getElementById("airlineFilter").value;
-        const status = document.getElementById("statusFilter").value;
         const priceRange = document.getElementById("priceFilter").value;
 
         const [minPrice, maxPrice] = priceRange
@@ -56,7 +61,7 @@ export default function FlightFinder() {
         const fullFilters = {
             ...baseFilters,
             airline,
-            status,
+
             ...(minPrice !== null ? { minPrice } : {}),
             ...(maxPrice !== null ? { maxPrice } : {}),
         };
@@ -124,7 +129,7 @@ export default function FlightFinder() {
 
                 <div className="flex justify-center gap-6 items-start">
 
-                    {flights.length > 0 && (
+                    {search && (
                         <div className="w-56 bg-white shadow-lg rounded-xl p-4 border space-y-4 sticky top-32">
                             <h3 className="text-center text-lg font-semibold text-grey-800">
                                 Filters
@@ -133,10 +138,9 @@ export default function FlightFinder() {
                             <select id="airlineFilter" onChange={applyFilters}
                                 className="w-full border px-3 py-2 rounded-lg">
                                 <option value="">All Airlines</option>
-                                <option value="Air India">Air India</option>
-                                <option value="IndiGo">IndiGo</option>
-                                <option value="Vistara">Vistara</option>
-                                <option value="SpiceJet">SpiceJet</option>
+                                {airlines.map(a => (
+                                    <option key={a._id} value={a._id}>{a.airline}</option>
+                                ))}
                             </select>
 
 
@@ -166,7 +170,7 @@ export default function FlightFinder() {
                                             <td className="block p-4">
                                                 <div className="flex justify-between items-center">
                                                     <div className="font-semibold text-lg">
-                                                        {f.airline} • {f.flightNumber}
+                                                        {f.airline.airline} • {f.flightNumber}
                                                     </div>
                                                     <div className="text-gray-600">
                                                         ₹{f.price.max}

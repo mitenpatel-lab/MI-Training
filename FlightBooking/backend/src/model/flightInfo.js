@@ -6,10 +6,7 @@ const flightSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    airline: {
-        type: String,
-        required: true
-    },
+    airline: { type: mongoose.Schema.Types.ObjectId, ref: "Airline" },
     aircraftType: {
         type: String,
         required: true

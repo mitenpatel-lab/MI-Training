@@ -6,23 +6,38 @@ export default function AirlineList() {
     const [airline, setairline] = useState([]);
     const token = localStorage.getItem("token");
 
+    const deleteAirline = async (id) => {
+        const res = await fetch(`http://localhost:3000/api/airline/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
+        if (res.status === 401) {
+            logout();
+            return;
+        }
+
+        const data = await res.json();
+        if (data)
+            airlineList();
+
+    };
+    const airlineList = async (e) => {
+        const res = await fetch("http://localhost:3000/api/airline", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+            logout();
+            return;
+        }
+
+        const data = await res.json();
+        setairline(res.status === 200 ? data.data : []);
+
+    };
 
     useEffect(() => {
-        const airlineList = async (e) => {
-            const res = await fetch("http://localhost:3000/api/airline", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (res.status === 401) {
-                logout();
-                return;
-            }
-
-            const data = await res.json();
-            setairline(res.status === 200 ? data.data : []);
-
-        };
         airlineList();
     }, [])
     return (
@@ -49,14 +64,16 @@ export default function AirlineList() {
                     </thead>
                     <tbody className="text-gray-800">
                         {airline.map((f) => (
-                            <tr className="hover:bg-gray-50 border-b border-gray-200">
-                                <td className="p-4 font-medium">{f}</td>
+                            <tr key={f._id} className="hover:bg-gray-50 border-b border-gray-200">
+                                <td className="p-4 font-medium">{f.airline}</td>
 
                                 <td className="p-4 text-center flex justify-center gap-3">
-                                    <button className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition">
-                                        <Pencil size={16} />
-                                    </button>
-                                    <button className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 transition">
+                                    <Link to={`addairline/${f._id}`}>
+                                        <button className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition">
+                                            <Pencil size={16} />
+                                        </button>
+                                    </Link>
+                                    <button onClick={() => deleteAirline(f._id)} className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 transition">
                                         <Trash2 size={16} />
                                     </button>
                                 </td>

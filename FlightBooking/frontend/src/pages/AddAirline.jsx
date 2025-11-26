@@ -1,11 +1,29 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AddAirline() {
+    const { id } = useParams();
     const [form, setForm] = useState({
         name: ""
     });
 
+
+
+    const fetchAirline = async () => {
+        const res = await fetch(`http://localhost:3000/api/airline/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        console.log(data);
+
+        setForm({ name: data.data.airline || "" });
+    }
+    useEffect(() => {
+
+        if (id) {
+            fetchAirline();
+        }
+    }, [id])
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
@@ -22,6 +40,8 @@ export default function AddAirline() {
     }
 
     async function handleSubmit(e) {
+        let METHOD = id ? "PUT" : "POST";
+        let URL = id ? `http://localhost:3000/api/airline/${id}` : "http://localhost:3000/api/airline"
         e.preventDefault();
         setMessage(null);
 
@@ -33,8 +53,8 @@ export default function AddAirline() {
 
         setLoading(true);
         try {
-            const res = await fetch("/api/admin/addairline", {
-                method: "POST",
+            const res = await fetch(URL, {
+                method: METHOD,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: token ? `Bearer ${token}` : ""
@@ -47,8 +67,8 @@ export default function AddAirline() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage({ type: "success", text: data.message || "Airline added successfully." });
-                setTimeout(() => navigate("/admin/airlines"), 300);
+                setMessage({ type: "success", text: data.message || id ? "Airline updated successfully." : "Airline added successfully." });
+                setTimeout(() => navigate("/admin/airline"), 300);
             } else {
                 setMessage({ type: "error", text: data.message || "Failed to add airline." });
             }
@@ -63,7 +83,7 @@ export default function AddAirline() {
         <div className="min-h-screen flex justify-center items-center p-4">
             <div className="rounded-xl">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-                    Add Airline
+                    {id ? "Update Airline" : "Add Airline"}
                 </h2>
 
                 {message && (
@@ -113,7 +133,7 @@ export default function AddAirline() {
                                 className={`px-5 py-2 rounded-md  ${loading ? "bg-gray-400" : "bg-gray-800 hover:bg-gray-900"
                                     } transition`}
                             >
-                                {loading ? "Saving..." : "Add Airline"}
+                                {id ? "Update Airline" : "Add Airline"}
                             </button>
                         </div>
                     </div>

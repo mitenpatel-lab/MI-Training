@@ -1,46 +1,57 @@
 const flights = require('../model/flightInfo');
-
+const airlines = require('../model/airlines');
 exports.getAllFlights = async (req, res) => {
-    const { from, to, date, airline, minPrice, maxPrice, status } = req.query;
+    const { from, to, date, airline, minPrice, maxPrice } = req.query;
 
+    console.log(date);
     try {
+        let results = await flights.find().populate("airline");
+        if (Object.keys(req.query).length == 0) return res.status(200).json(results);
 
-
-        let results = await flights.find();
-
-        if (Object.keys(req.query).length == 0)
-            return res.status(200).json(results);
-
-        //console.log(results);
         if (from) results = results.filter(f => f.departure.city.toLowerCase() === from.toLowerCase());
+        //console.log("from filter " + results);
 
         if (to) results = results.filter(f => f.arrival.city.toLowerCase() === to.toLowerCase());
-        if (date) results = results.filter(f => new Date(f.departure.scheduledTime).toISOString().split('T')[0] === date);
-        if (airline) results = results.filter(f => f.airline.toLowerCase() === airline.toLowerCase());
-        if (minPrice) results = results.filter(f => f.price >= Number(minPrice));
-        if (maxPrice) results = results.filter(f => f.price <= Number(maxPrice));
-        if (status) results = results.filter(f => f.status.toLowerCase() === status.toLowerCase());
+        //console.log("to filter " + results);
+        if (date) results = results.filter(f => new Date(f.departure.scheduledTime).toLocaleDateString("en-CA") === date);
+        // console.log("date filter " + results);
+
+        if (airline) results = results.filter(f => f.airline.airline.toLowerCase() === airline.toLowerCase());
+        //log("airline filter " + results);
+
+        if (minPrice) results = results.filter(f => f.price.min >= Number(minPrice));
+        //log("min filter " + results);
+
+        if (maxPrice) results = results.filter(f => f.price.max <= Number(maxPrice));
+        //log("max filter " + results);
+
         if (!from || !to || !minPrice || !maxPrice)
             results = results.filter(f => Number(f.status) === 1)
 
         console.log(results);
-        res.status(200).json(results);
+        let air = await airlines.find();
+        console.log(airline);
+        res.status(200).json({ data: results, airline: air });
 
 
     } catch (e) {
+        res.status(500).json(e.message);
 
     }
 
 
 }
 exports.getFlightById = async (req, res) => {
-
     try {
-        let results = await flights.findById(req.params.Id);
+
+        const results = await flights.findById(req.params.Id)
+            .populate("airline");
         console.log(results);
-        res.status(200).json(results);
+        let airline = await airlines.find();
+        console.log(airline);
+        res.status(200).json({ data: results, airline: airline });
     } catch (e) {
-        res.status().json(results);
+        res.status(500).json(e.message);
 
     }
 
@@ -52,7 +63,7 @@ exports.updateFlightStatus = async (req, res) => {
         let update = await flights.findByIdAndUpdate(req.params.Id, { status: Number(req.body.status) });
 
         if (update) {
-            console.log(update);
+            //log(update);
             return res.status(200).json(update);
         }
         return res.status(404).json(update);
@@ -68,7 +79,7 @@ exports.deleteFlight = async (req, res) => {
         let updateflights = await flights.findByIdAndDelete(req.params.Id);
 
         if (updateflights) {
-            console.log(updateflights);
+            //log(updateflights);
             return res.status(200).json({ message: "deleted successfully", status: 200 });
         }
 

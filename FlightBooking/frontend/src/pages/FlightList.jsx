@@ -1,6 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from 'react'
+import Dialog from "../components/Dialog";
 
 export default function FlightList() {
     const [flights, setFlights] = useState([]);
@@ -27,6 +28,7 @@ export default function FlightList() {
         }
     };
     const deleteFlight = async (Id) => {
+        <Dialog />
         try {
             const res = await fetch(`http://localhost:3000/api/flights/${Id}`, {
                 method: "DELETE",
@@ -74,7 +76,7 @@ export default function FlightList() {
                     to="/admin/flight/addflight"
                     className="px-5 py-2 text-white rounded-lg hover:bg-blue-700 shadow-sm transition"
                 >
-                    + Add New airline
+                    + Add New Flight
                 </Link>
             </div>
 
@@ -96,7 +98,7 @@ export default function FlightList() {
                     <tbody className="text-gray-800">
                         {flights.length > 0 && flights.map((f) => (
                             <tr key={f._id} className="hover:bg-gray-50 border-b border-gray-200">
-                                <td className="p-4 font-medium">{f.airline}</td>
+                                <td className="p-4 font-medium">{f?.airline?.airline || "not Available"}</td>
                                 <td className="p-4">{f.flightNumber}</td>
                                 <td className="p-4">{f.departure.city}</td>
                                 <td className="p-4">{f.arrival.city}</td>
@@ -137,6 +139,7 @@ export default function FlightList() {
                     </tbody>
 
                 </table>
+
             </div>
         </div>
     );

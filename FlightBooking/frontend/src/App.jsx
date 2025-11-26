@@ -36,6 +36,8 @@ export default function App() {
           <Route path="airline" element={<Airline />}>
             <Route index element={<AirlineList />} />
             <Route path="addairline" element={<AddAirline />} />
+            <Route path="addairline/:id" element={<AddAirline />} />
+
           </Route>
 
         </Route>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 export default function AddFlight() {
     const { id } = useParams();
+    const [airlines, setAirlines] = useState([]);
 
     const [form, setForm] = useState({
         airline: "",
@@ -31,18 +32,20 @@ export default function AddFlight() {
         const res = await fetch(`http://localhost:3000/api/flights/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        const data = await res.json();
+        const response = await res.json();
+        setAirlines(response.airline || []);
+
         setForm({
-            airline: data.airline || "",
-            flightNumber: data.flightNumber || "",
-            departureCity: data.departure.city || "",
-            departureAirportCode: data.departure.airportCode || "",
-            arrivalCity: data.arrival.city || "",
-            arrivalAirportCode: data.arrival.airportCode || "",
-            departureTime: data.departure.scheduledTime?.slice(0, 16) || "",
-            arrivalTime: data.arrival.scheduledTime?.slice(0, 16) || "",
-            priceMin: data.price?.min?.toString() || "",
-            priceMax: data.price?.max?.toString() || "",
+            airline: response.data.airline._id || "",
+            flightNumber: response.data.flightNumber || "",
+            departureCity: response.data.departure.city || "",
+            departureAirportCode: response.data.departure.airportCode || "",
+            arrivalCity: response.data.arrival.city || "",
+            arrivalAirportCode: response.data.arrival.airportCode || "",
+            departureTime: response.data.departure.scheduledTime?.slice(0, 16) || "",
+            arrivalTime: response.data.arrival.scheduledTime?.slice(0, 16) || "",
+            priceMin: response.data.price?.min?.toString() || "",
+            priceMax: response.data.price?.max?.toString() || "",
         });
 
     };
@@ -154,7 +157,7 @@ export default function AddFlight() {
     return (
         <div className="max-w-screen align-center mx-auto">
             <div className="bg-white">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Add Flight</h2>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">{id ? "Update Flight" : "Add Flight"} </h2>
 
                 {message && (
                     <div
@@ -168,17 +171,38 @@ export default function AddFlight() {
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label className="block">
+                    {id ? <label className="block">
+                        <span className="text-sm font-medium text-gray-700 mb-1 block">Airline</span>
+
+                        <div className="relative">
+                            <select
+                                name="airline"
+                                value={form.airline}
+                                onChange={handleChange}
+                                className="block w-full appearance-none bg-white border border-gray-300 rounded-xl px-4 py-2.5 pr-10
+                 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                            >
+                                {airlines.map(a => (
+                                    <option key={a._id} value={a._id}>{a.airline}</option>
+                                ))}
+                            </select>
+
+                            <span className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                                ▼
+                            </span>
+                        </div>
+                    </label> : <label className="block">
                         <span className="text-sm font-medium text-gray-700">Airline</span>
                         <input
                             name="airline"
                             value={form.airline}
                             onChange={handleChange}
                             className="mt-1 block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Air India"
+                            placeholder="AI-302"
                             required
                         />
-                    </label>
+                    </label>}
+
 
                     <label className="block">
                         <span className="text-sm font-medium text-gray-700">Flight Number</span>
@@ -336,6 +360,6 @@ export default function AddFlight() {
                     </div>
                 </form>
             </div>
-        </div>
+        </div >
     );
 }
