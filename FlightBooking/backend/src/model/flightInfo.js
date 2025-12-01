@@ -4,13 +4,8 @@ const flightSchema = new mongoose.Schema({
     flightNumber: {
         type: String,
         required: true,
-        unique: true
     },
     airline: { type: mongoose.Schema.Types.ObjectId, ref: "Airline" },
-    aircraftType: {
-        type: String,
-        required: true
-    },
     status: {
         type: Number,
         default: 1
@@ -21,8 +16,6 @@ const flightSchema = new mongoose.Schema({
         city: { type: String, required: true },
         scheduledTime: { type: Date, required: true },
         estimatedTime: { type: Date, required: true },
-        terminal: { type: String },
-        gate: { type: String }
     },
 
     arrival: {
@@ -30,13 +23,12 @@ const flightSchema = new mongoose.Schema({
         city: { type: String, required: true },
         scheduledTime: { type: Date, required: true },
         estimatedTime: { type: Date, required: true },
-        terminal: { type: String },
-        gate: { type: String }
     },
 
     duration: {
         type: String,
-        required: true
+        required: true,
+        default: "2 hr"
     },
 
     price: {

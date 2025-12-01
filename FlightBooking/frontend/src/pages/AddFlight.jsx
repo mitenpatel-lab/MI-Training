@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { createFlight } from "../../services/flightService";
 
 export default function AddFlight() {
     const { id } = useParams();
@@ -21,11 +22,31 @@ export default function AddFlight() {
         durationMinutes: ""
     });
 
+    const airlineList = async (e) => {
+        const res = await fetch("http://localhost:3000/api/airline", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+            logout();
+            return;
+        }
+
+        const data = await res.json();
+        setAirlines(res.status === 200 ? data.data : []);
+
+    };
+    useEffect(() => {
+
+        airlineList();
+
+    }, [])
     useEffect(() => {
 
         if (id) {
             fetchFlight();
         }
+
     }, [id])
 
     const fetchFlight = async () => {
@@ -33,24 +54,21 @@ export default function AddFlight() {
             headers: { Authorization: `Bearer ${token}` }
         });
         const response = await res.json();
-        setAirlines(response.airline || []);
 
         setForm({
-            airline: response.data.airline._id || "",
-            flightNumber: response.data.flightNumber || "",
-            departureCity: response.data.departure.city || "",
-            departureAirportCode: response.data.departure.airportCode || "",
-            arrivalCity: response.data.arrival.city || "",
-            arrivalAirportCode: response.data.arrival.airportCode || "",
-            departureTime: response.data.departure.scheduledTime?.slice(0, 16) || "",
-            arrivalTime: response.data.arrival.scheduledTime?.slice(0, 16) || "",
-            priceMin: response.data.price?.min?.toString() || "",
-            priceMax: response.data.price?.max?.toString() || "",
+            airline: response.airline._id || "",
+            flightNumber: response.flightNumber || "",
+            departureCity: response.departure.city || "",
+            departureAirportCode: response.departure.airportCode || "",
+            arrivalCity: response.arrival.city || "",
+            arrivalAirportCode: response.arrival.airportCode || "",
+            departureTime: response.departure.scheduledTime?.slice(0, 16) || "",
+            arrivalTime: response.arrival.scheduledTime?.slice(0, 16) || "",
+            priceMin: response.price?.min?.toString() || "",
+            priceMax: response.price?.max?.toString() || "",
         });
 
     };
-
-    const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
@@ -98,61 +116,49 @@ export default function AddFlight() {
             setMessage({ type: "error", text: err });
             return;
         }
+        const body = {
+            airline: form.airline,
+            flightNumber: form.flightNumber,
+            departure: {
+                city: form.departureCity,
+                airportCode: form.departureAirportCode,
+                scheduledTime: form.departureTime,
+                estimatedTime: form.departureTime
+            },
+            arrival: {
+                city: form.arrivalCity,
+                airportCode: form.arrivalAirportCode,
+                scheduledTime: form.arrivalTime,
+                estimatedTime: form.arrivalTime
+            },
+            price: {
+                min: form.priceMin ? Number(form.priceMin) : 0,
+                max: Number(form.priceMax)
+            }
+        };
 
-        setLoading(true);
         try {
-            let URL;
-            let METHOD;
             if (id) {
-                URL = `http://localhost:3000/api/flights/${id}`;
-                METHOD = "PUT"
-            }
-            else {
-                URL = `http://localhost:3000/api/flights`;
-                METHOD = "POST"
-            }
-            const res = await fetch(URL, {
-                method: METHOD,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: token ? `Bearer ${token}` : ""
-                },
-                body: JSON.stringify(form
-                    //     {
-                    //     airline: form.airline,
-                    //     flightNumber: form.flightNumber,
-                    //     departure: {
-                    //         city: form.departureCity,
-                    //         airportCode: form.departureAirportCode,
-                    //         scheduledTime: form.departureTime
-                    //     },
-                    //     arrival: {
-                    //         city: form.arrivalCity,
-                    //         airportCode: form.arrivalAirportCode,
-                    //         scheduledTime: form.arrivalTime
-                    //     },
-                    //     price: {
-                    //         min: form.priceMin ? Number(form.priceMin) : 0,
-                    //         max: Number(form.priceMax)
-                    //     },
-                    // }
-                )
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setMessage({ type: "success", text: data.message || "Flight added successfully." });
-                setTimeout(() => navigate("/admin/flights"), 900);
+                await updateFlight(id, body);
+                setMessage({
+                    type: "success",
+                    text: "Flight updated successfully."
+                });
             } else {
-                setMessage({ type: "error", text: data.message || "Something went wrong." });
+                await createFlight(body);
+                setMessage({
+                    type: "success",
+                    text: "Flight added successfully."
+                });
             }
+
+            setTimeout(() => navigate("/admin/flight"), 1800);
         } catch (err) {
-            setMessage({ type: "error", text: err.message || "Network error." });
-        } finally {
-            setLoading(false);
+            console.error(err);
+            setMessage({ type: "error", text: "Something went wrong." });
         }
-    }
+    };
+
 
     return (
         <div className="max-w-screen align-center mx-auto">
@@ -171,7 +177,7 @@ export default function AddFlight() {
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {id ? <label className="block">
+                    <label className="block">
                         <span className="text-sm font-medium text-gray-700 mb-1 block">Airline</span>
 
                         <div className="relative">
@@ -182,7 +188,9 @@ export default function AddFlight() {
                                 className="block w-full appearance-none bg-white border border-gray-300 rounded-xl px-4 py-2.5 pr-10
                  text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                             >
-                                {airlines.map(a => (
+                                <option value="">Select Airline</option>
+
+                                {Array.isArray(airlines) && airlines.map(a => (
                                     <option key={a._id} value={a._id}>{a.airline}</option>
                                 ))}
                             </select>
@@ -191,19 +199,7 @@ export default function AddFlight() {
                                 ▼
                             </span>
                         </div>
-                    </label> : <label className="block">
-                        <span className="text-sm font-medium text-gray-700">Airline</span>
-                        <input
-                            name="airline"
-                            value={form.airline}
-                            onChange={handleChange}
-                            className="mt-1 block w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="AI-302"
-                            required
-                        />
-                    </label>}
-
-
+                    </label>
                     <label className="block">
                         <span className="text-sm font-medium text-gray-700">Flight Number</span>
                         <input
@@ -349,12 +345,10 @@ export default function AddFlight() {
 
                             <button
                                 type="submit"
-
-                                disabled={loading}
-                                className={`px-5 py-2 rounded-md  ${loading ? "bg-gray-400" : "bg-gray-800 hover:bg-gray-900"
-                                    } transition`}
+                                //disabled={loading}
+                                className={`px-5 py-2 rounded-md text-grey font-semibold transition`}
                             >
-                                {id ? "Update" : "Add Flight"}
+                                {id ? "Update Flight" : "Add Flight"}
                             </button>
                         </div>
                     </div>
@@ -362,4 +356,5 @@ export default function AddFlight() {
             </div>
         </div >
     );
+
 }

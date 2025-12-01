@@ -1,39 +1,30 @@
 import { Link, Outlet } from "react-router-dom";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from 'react'
+import { getAllAirlines, getDeleteAirline } from "../../services/airlineService";
+import { toast } from 'react-toastify';
 
 export default function AirlineList() {
     const [airline, setairline] = useState([]);
     const token = localStorage.getItem("token");
 
     const deleteAirline = async (id) => {
-        const res = await fetch(`http://localhost:3000/api/airline/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
+        const res = await getDeleteAirline(id);
         if (res.status === 401) {
             logout();
             return;
         }
-
-        const data = await res.json();
-        if (data)
-            airlineList();
-
+        if (res)
+            toast.error("Airline Deleted");
+        airlineList();
     };
     const airlineList = async (e) => {
-        const res = await fetch("http://localhost:3000/api/airline", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
+        const res = await getAllAirlines();
         if (res.status === 401) {
             logout();
             return;
         }
-
-        const data = await res.json();
-        setairline(res.status === 200 ? data.data : []);
+        setairline(res.success ? res.data : []);
 
     };
 
@@ -47,7 +38,7 @@ export default function AirlineList() {
                 <h2 className="text-2xl font-semibold text-gray-800">Airline List</h2>
                 <Link
                     to="/admin/airline/addairline"
-                    className="px-5 py-2 text-white rounded-lg hover:bg-blue-700 shadow-sm transition"
+                    className="px-5 py-2 text-white font-bold bg-blue-700 rounded-lg hover:bg-blue-700 shadow-sm transition"
                 >
                     + Add New airline
                 </Link>

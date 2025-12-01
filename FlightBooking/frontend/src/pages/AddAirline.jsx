@@ -1,30 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { createAirline, getAirline, updateAirline } from "../../services/airlineService";
 
 export default function AddAirline() {
     const { id } = useParams();
     const [form, setForm] = useState({
         name: ""
     });
-
-
-
-    const fetchAirline = async () => {
-        const res = await fetch(`http://localhost:3000/api/airline/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        console.log(data);
-
-        setForm({ name: data.data.airline || "" });
-    }
     useEffect(() => {
-
-        if (id) {
-            fetchAirline();
+        const fetchData = async () => {
+            const data = await getAirline(id);
+            setForm({ name: data.data.airline || "" });
         }
+        fetchData();
     }, [id])
-    const [loading, setLoading] = useState(false);
+
+
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -40,8 +31,7 @@ export default function AddAirline() {
     }
 
     async function handleSubmit(e) {
-        let METHOD = id ? "PUT" : "POST";
-        let URL = id ? `http://localhost:3000/api/airline/${id}` : "http://localhost:3000/api/airline"
+        let data;
         e.preventDefault();
         setMessage(null);
 
@@ -50,34 +40,19 @@ export default function AddAirline() {
             setMessage({ type: "error", text: err });
             return;
         }
-
-        setLoading(true);
-        try {
-            const res = await fetch(URL, {
-                method: METHOD,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: token ? `Bearer ${token}` : ""
-                },
-                body: JSON.stringify({
-                    name: form.name.trim(),
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setMessage({ type: "success", text: data.message || id ? "Airline updated successfully." : "Airline added successfully." });
-                setTimeout(() => navigate("/admin/airline"), 300);
-            } else {
-                setMessage({ type: "error", text: data.message || "Failed to add airline." });
-            }
-        } catch (err) {
-            setMessage({ type: "error", text: err.message || "Network error." });
-        } finally {
-            setLoading(false);
+        if (id) {
+            data = await updateAirline(id, { name: form.name.trim() });
+        } else {
+            data = await createAirline({ name: form.name.trim() });
+        }
+        if (data.success) {
+            setMessage({ type: "success", text: id ? "Airline updated successfully." : "Airline added successfully." });
+            setTimeout(() => navigate("/admin/airline"), 300);
+        } else {
+            setMessage({ type: "error", text: data.message || "Failed to add airline." });
         }
     }
+
 
     return (
         <div className="min-h-screen flex justify-center items-center p-4">
@@ -129,16 +104,14 @@ export default function AddAirline() {
 
                             <button
                                 type="submit"
-                                disabled={loading}
-                                className={`px-5 py-2 rounded-md  ${loading ? "bg-gray-400" : "bg-gray-800 hover:bg-gray-900"
-                                    } transition`}
+                                className="px-5 py-2 rounded-md bg-gray-800 hover:bg-gray-900 transition"
                             >
                                 {id ? "Update Airline" : "Add Airline"}
                             </button>
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

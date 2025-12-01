@@ -7,7 +7,6 @@ exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username: username });
-        console.log(user);
         if (!user) {
             return res.status(401).json({ success: false, message: 'Username/Password is incorrect' });
         }
@@ -17,10 +16,9 @@ exports.login = async (req, res) => {
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.role },
             SECRET_KEY,
-            { expiresIn: '1h' }
+            { expiresIn: '1d' }
         );
 
-        console.log(user);
         res.json({ success: true, token, user });
     } catch (e) {
         console.log(e);
@@ -33,7 +31,6 @@ exports.getAllUser = async (req, res) => {
 
     let user = await User.find({ role: { $ne: 'admin' } });
 
-    console.log(user);
     try {
         res.status(200).json(user);
     } catch (e) {
@@ -49,8 +46,18 @@ exports.register = async (req, res) => {
             username: username,
             password: password
         });
+
         const user = await User.create(newUser);
-        res.status(200).json({ success: true, })
+
+        if (user) {
+            const token = jwt.sign(
+                { id: user.id, username: user.username, role: user.role },
+                SECRET_KEY,
+                { expiresIn: '1d' }
+            );
+
+            res.json({ success: true, token, user });
+        }
 
     } catch (e) {
         if (e.code == 11000) {
@@ -67,7 +74,6 @@ exports.update = async (req, res) => {
 
 
         let user = await User.findOne({ username });
-        console.log(user);
         if (user) {
 
             user.password = password;

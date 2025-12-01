@@ -5,8 +5,6 @@ const flightInfo = require('../model/flightInfo');
 exports.getAllAirlines = async (req, res) => {
     try {
         const airlines = await airline.find();
-
-        console.log(airlines);
         res.status(200).json({
             success: true,
             data: airlines
@@ -22,7 +20,6 @@ exports.getAllAirlines = async (req, res) => {
 exports.getAirline = async (req, res) => {
     try {
         const getAirline = await airline.findById(req.params.Id);
-        console.log(getAirline);
         res.status(200).json({
             success: true,
             data: getAirline
@@ -40,7 +37,6 @@ exports.getAirline = async (req, res) => {
 exports.updateAirline = async (req, res) => {
     try {
         const updateAirline = await airline.findByIdAndUpdate(req.params.Id, { $set: { airline: req.body.name } });
-        //console.log(getAirline);
         res.status(200).json({
             success: true,
             data: updateAirline
@@ -56,6 +52,7 @@ exports.updateAirline = async (req, res) => {
 
 }
 exports.createAirline = async (req, res) => {
+
     try {
         const createairline = new airline({ airline: req.body.name });
         const newairline = await createairline.save();
@@ -65,6 +62,11 @@ exports.createAirline = async (req, res) => {
         });
     }
     catch (err) {
+        if (err.code === 11000)
+            return res.status(500).json({
+                success: false,
+                message: "Airline Already exist"
+            })
         res.status(500).json({
             success: false,
             message: "Failed to add airline",

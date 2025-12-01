@@ -1,46 +1,32 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from 'react'
-import Dialog from "../components/Dialog";
+import { toast } from "react-toastify";
+import { changeFlightStatus, getAllFlights, getDeleteFlight } from '../../services/flightService';
 
 export default function FlightList() {
     const [flights, setFlights] = useState([]);
-    const token = localStorage.getItem("token");
 
     const handleToggle = async (flight) => {
         const newStatus = flight.status === 1 ? 0 : 1;
-
         try {
-            await fetch(`http://localhost:3000/api/flights/status/${flight._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ status: newStatus })
-            });
-
-            setFlights(prev =>
-                prev.map(f =>
-                    f._id === flight._id ? { ...f, status: newStatus } : f
-                )
-            );
-
+            await changeFlightStatus(flight._id, { status: newStatus })
+            setFlights(prev => prev.map(f => f._id === flight._id ? { ...f, status: newStatus } : f));
         } catch (err) {
             console.error("Failed to update flight status", err);
         }
     };
     const deleteFlight = async (Id) => {
-        <Dialog />
         try {
-            const res = await fetch(`http://localhost:3000/api/flights/${Id}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-
-            });
+            const res = await getDeleteFlight(Id)
             if (res.status === 401) {
                 logout();
                 return;
             }
             if (res.status == 200) {
-                alert("flight deleted");
+                toast.success("Flight is removed", {
+                    autoClose: 3000,
+                });
                 flightList();
             }
 
@@ -48,20 +34,12 @@ export default function FlightList() {
             console.error("Failed to Delete flight", err);
         }
     };
-    const flightList = async (e) => {
-        const res = await fetch("http://localhost:3000/api/flights", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
 
-        if (res.status === 401) {
-            logout();
-            return;
-        }
+    const flightList = async () => {
+        const flightlist = await getAllFlights();
+        setFlights(flightlist);
 
-        const data = await res.json();
-        setFlights(res.status === 200 ? data : []);
-
-    };
+    }
     useEffect(() => {
 
         flightList();
@@ -74,7 +52,7 @@ export default function FlightList() {
                 <h2 className="text-2xl font-semibold text-gray-800">Flight List</h2>
                 <Link
                     to="/admin/flight/addflight"
-                    className="px-5 py-2 text-white rounded-lg hover:bg-blue-700 shadow-sm transition"
+                    className="px-5 py-2 text-white font-bold bg-blue-700  rounded-lg hover:bg-blue-700 shadow-sm transition"
                 >
                     + Add New Flight
                 </Link>
