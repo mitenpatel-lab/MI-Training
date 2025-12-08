@@ -37,7 +37,7 @@ export default function FlightList() {
 
     const flightList = async () => {
         const flightlist = await getAllFlights();
-        setFlights(flightlist);
+        setFlights(flightlist.data);
 
     }
     useEffect(() => {

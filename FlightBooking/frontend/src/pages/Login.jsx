@@ -1,34 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { Field, Formik, Form } from 'formik'
 
 export default function Login() {
     const [message, setMessage] = useState("");
     const [color, setColor] = useState("");
     const navigate = useNavigate();
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-
-        const username = e.target.username.value;
-        const password = e.target.password.value;
-
+    const handleLogin = async (values, { setSubmitting }) => {
+        const { username, password } = values;
         const res = await fetch("http://localhost:3000/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
         });
-
         const data = await res.json();
 
         if (data.success) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("username", username);
-            localStorage.setItem("password", password);
-            localStorage.setItem("role", data.user.role);
-
+            localStorage.setItem("token", data.accessToken);
             setMessage(`Welcome ${username}! Redirecting...`);
             setColor("text-green-600");
-
             if (data.user.role === "admin") {
                 return navigate('/admin/flight');
             }
@@ -40,34 +30,37 @@ export default function Login() {
             setMessage(data.message);
             setColor("text-red-600");
         }
+        setSubmitting(false);
+
     };
 
     return (
         <>
-            <form onSubmit={handleLogin} className="space-y-4">
-                <input
-                    type="text"
-                    name="username"
-                    placeholder="Username"
-                    required
-                    className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-grey-500 outline-none"
-                />
+            <Formik initialValues={{ username: "", password: "" }} onSubmit={handleLogin}>
+                <Form className="space-y-4">
+                    <Field
+                        type="text"
+                        name="username"
+                        placeholder="Username"
+                        required
+                        className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-grey-500 outline-none"
+                    />
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    required
-                    className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-grey-500 outline-none"
-                />
+                    <Field
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        required
+                        className="w-full border border-gray-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-grey-500 outline-none"
+                    />
 
-                <button
-                    type="submit"
-                    className="w-full bg-grey-800  py-3 rounded-lg focus:ring-grey-500 font-semibold transition">
-                    Login
-                </button>
-            </form>
-
+                    <button
+                        type="submit"
+                        className="w-full bg-grey-800  py-3 rounded-lg focus:ring-grey-500 font-semibold transition">
+                        Login
+                    </button>
+                </Form>
+            </Formik>
             <button
                 onClick={() => navigate('register')}
                 className="w-full py-3 mt-5 rounded-lg font-semibold hover:ring-grey-700 transition"

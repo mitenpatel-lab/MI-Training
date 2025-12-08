@@ -13,8 +13,8 @@ export default function AdminLayout() {
     const isActive = (path) => location.pathname.startsWith(path);
 
     return (
-        <div className="flex min-w-screen">
-            <aside className="w-64 bg-gray-200 min-h-screen p-0">
+        <div className="flex min-w-screen min-h-screen">
+            <aside className="w-64 bg-gray-200 flex flex-col min-h-screen p-0">
                 <h2 className="font-bold text-xl p-4 bg-gray-300">Admin Panel</h2>
 
                 <nav className="flex flex-col gap-2 p-4 text-gray-500">
@@ -37,21 +37,29 @@ export default function AdminLayout() {
                     >
                         Airlines
                     </Link>
+                    <Link
+                        to="/admin/user"
+                        className={`px-3 py-2 rounded ${isActive("/admin/user")
+                            ? "bg-gray-400 text-black font-semibold"
+                            : "text-gray-600 font-bold"
+                            }`}
+                    >
+                        Users
+                    </Link>
                 </nav>
+                <button
+                    onClick={logout}
+                    className="flex button-logout font-bold mt-auto mb-5 gap-2 text-grey-600 hover:text-red-800"
+                >
+                    <LogOut size={20} /> Logout
+                </button>
             </aside>
 
-            <main className="flex-1 min-h-screen overflow-x-auto">
+            <main className="flex-1 min-h-screen">
 
-                <div className="flex justify-end p-4 bg-grey-700">
-                    <button
-                        onClick={logout}
-                        className="flex items-center gap-2 text-grey-600 hover:text-red-800"
-                    >
-                        <LogOut size={20} /> Logout
-                    </button>
-                </div>
 
-                <div className="p-6 w-full max-w-full">
+
+                <div className="p-6 w-full min-w-full">
                     <Outlet />
                 </div>
             </main>

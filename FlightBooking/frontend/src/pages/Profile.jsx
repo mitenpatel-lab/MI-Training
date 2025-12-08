@@ -63,12 +63,12 @@ export default function Profile() {
                     <div className="flex gap-2">
                         <button
                             onClick={() => (window.location.href = "/flightfinder.html")}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-full"
+                            className="bg-blue-600 text-gray-600 px-4 py-2 rounded-full"
                         >
                             Find Flights
                         </button>
 
-                        <button onClick={logout} className="bg-red-600 text-white px-4 py-2 rounded-full">
+                        <button onClick={logout} className="bg-red-600 text-gray-600 px-4 py-2 rounded-full">
                             Logout
                         </button>
                     </div>

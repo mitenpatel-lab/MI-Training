@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createFlight } from "../../services/flightService";
+import { createFlight, updateFlight } from "../../services/flightService";
 
 export default function AddFlight() {
     const { id } = useParams();
@@ -283,8 +283,6 @@ export default function AddFlight() {
                             required
                         />
                     </label>
-
-
 
                     <label className="block">
                         <span className="text-sm font-medium text-gray-700">Price (Min)</span>

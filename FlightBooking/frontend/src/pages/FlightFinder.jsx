@@ -27,10 +27,11 @@ export default function FlightFinder() {
             return;
         }
         const response = await res.json();
-        if (queryParams.length > 0 && response.data.length > 0)
-            setSearch(true);
+        console.log(response.airline);
 
-        setairline(response.airline);
+        if (queryParams.length > 0 && response?.data?.length > 0)
+            setSearch(true);
+        setairline(response.airlines);
         setFlights(res.status === 200 ? response.data : []);
     }
 
@@ -41,7 +42,7 @@ export default function FlightFinder() {
 
         if (!from || !to || !date) {
             toast.error("All Field are Required", {
-                autoClose: false,
+                autoClose: 3000,
                 position: "bottom-right",
                 theme: "colored"
             }); return;
@@ -79,24 +80,24 @@ export default function FlightFinder() {
                 <input
                     id="fromInput"
                     placeholder="From (Delhi)"
-                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-4 focus:ring-gray-700"
                 />
 
                 <input
                     id="toInput"
                     placeholder="To (Mumbai)"
-                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-4  focus:ring-gray-700"
                 />
 
                 <input
                     type="date"
                     id="dateInput"
-                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border rounded-full shadow-sm w-52 focus:ring-4 focus:ring-gray-700"
                 />
 
                 <button
                     onClick={handleSearch}
-                    className="bg-blue-700 text-grey-800  font-semibold px-5 py-2 rounded-full shadow hover:bg-blue-800 transition"
+                    className="text-grey-800  font-semibold px-5 py-2 rounded-full border-2"
                 >
                     Search Flights
                 </button>
@@ -134,6 +135,8 @@ export default function FlightFinder() {
                         <p className="text-center text-gray-500 mt-5">
                             No flights found.
                         </p>
+
+
                     ) : (
                         <table className="w-full">
                             <tbody>
@@ -168,7 +171,7 @@ export default function FlightFinder() {
                                                     onClick={() => {
                                                         navigate(`ticket/${f._id}`);
                                                     }}
-                                                    className="bg-blue-600 text-grey-800 px-4 py-1 rounded-full hover:bg-blue-700 transition"
+                                                    className=" text-grey-800 p-4 rounded-full"
                                                 >
                                                     Book Now
                                                 </button>

@@ -1,22 +1,9 @@
-const tickets = require('../model/tickets');
-const User = require('../model/users');
-const mongoose = require('mongoose');
-
+const ticketService = require('../services/ticketService');
 
 exports.createTicket = async (req, res) => {
 
-
-    const { passengerInfo, username, flight_id, totalAmount } = req.body;
     try {
-        const userId = await User.findOne({ username: username }, { _id: 1 }).lean();
-        const ticketinfo = new tickets({
-            userId: userId,
-            flightId: flight_id,
-            totalAmount: totalAmount,
-            passengerInfo: passengerInfo
-        });
-        const ticketbooking = await ticketinfo.save();
-
+        const ticketbooking = await ticketService.createTicket(req.user.username, req.body);
         if (ticketbooking)
             res.status(200).json({
                 success: true,
@@ -31,50 +18,8 @@ exports.createTicket = async (req, res) => {
 }
 
 exports.getAllTickets = async (req, res) => {
-
-
-    const { username } = req.query;
     try {
-        const userId = await User.findOne({ username: username });
-        const ticketbooking = await tickets.aggregate([
-            { $match: { userId: userId._id } },
-
-            {
-                $lookup: {
-                    from: "flights",
-                    localField: "flightId",
-                    foreignField: "_id",
-                    as: "flightDetails"
-                }
-            },
-
-            { $unwind: "$flightDetails" },
-
-            {
-                $lookup: {
-                    from: "Airline",
-                    localField: "flightDetails.airline",
-                    foreignField: "_id",
-                    as: "airlineData"
-                }
-            },
-
-            { $unwind: { path: "$airlineData", preserveNullAndEmptyArrays: true } },
-
-            {
-                $project: {
-
-                    Airline: "$airlineData.airline",
-                    FlightNo: "$flightDetails.flightNumber",
-                    From: "$flightDetails.departure.city",
-                    To: "$flightDetails.arrival.city",
-                    DepartureDate: "$flightDetails.departure.scheduledTime",
-                    ArrivalDate: "$flightDetails.arrival.scheduledTime",
-                }
-            }
-        ]);
-
-
+        const ticketbooking = await ticketService.getAllTickets(req.user.username);
         if (ticketbooking)
             res.status(200).json({
                 success: true,
@@ -89,71 +34,21 @@ exports.getAllTickets = async (req, res) => {
     }
 }
 
-
 exports.deleteTicket = async (req, res) => {
 
     try {
-        let updateflights = await tickets.findByIdAndDelete(req.params.Id);
-
+        let updateflights = await ticketService.deleteTicket(req.params.Id);
         if (updateflights) {
             return res.status(200).json({ message: "Removed successfully", status: 200 });
         }
-
     } catch (err) {
         return res.status(404).json({ message: err.message });
-
     }
-
 }
 
-
-
 exports.getTicketDetails = async (req, res) => {
-    const ObjectId = mongoose.Types.ObjectId;
-
-
-    const { Id } = req.params;
-
     try {
-        const getTicketDetails = await tickets.aggregate([
-            { $match: { _id: new ObjectId(Id) } },
-
-            {
-                $lookup: {
-                    from: "flights",
-                    localField: "flightId",
-                    foreignField: "_id",
-                    as: "flightDetails"
-                }
-            },
-
-            { $unwind: "$flightDetails" },
-
-            {
-                $lookup: {
-                    from: "Airline",
-                    localField: "flightDetails.airline",
-                    foreignField: "_id",
-                    as: "airlineData"
-                }
-            },
-
-            { $unwind: { path: "$airlineData", preserveNullAndEmptyArrays: true } },
-
-            {
-                $project: {
-
-                    airline: "$airlineData.airline",
-                    flightNumber: "$flightDetails.flightNumber",
-                    from: "$flightDetails.departure.city",
-                    to: "$flightDetails.arrival.city",
-                    date: "$flightDetails.departure.scheduledTime",
-                    time: "$flightDetails.arrival.scheduledTime",
-                    price: "$totalAmount",
-                    passengerInfo: 1
-                }
-            }
-        ]);
+        const getTicketDetails = await ticketService.getTicketDetails(req.params)
 
         if (getTicketDetails)
             res.status(200).json({

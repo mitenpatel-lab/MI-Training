@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import Login from "./pages/Login";
 import ProtectedUserRoute from "./components/ProtectedUserRoute";
 import FlightFinder from "./pages/FlightFinder";
@@ -15,57 +15,68 @@ import UserLayout from "./pages/UserLayout";
 import BookingForm from "./pages/BookingForm";
 import TicketList from "./pages/TicketList";
 import TicketUI from "./pages/TicketUI";
-
+import UserList from "./pages/UserList";
+import { useNavigate } from "react-router-dom";
+import { setNavigate } from "../services/navigation";
+import { useEffect } from "react";
+import Task from "./pages/Task";
 export default function App() {
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
   return (
-    <BrowserRouter>
-      <Routes>
 
+    <Routes>
 
-        <Route path="/" element={<LoginUI />} >
+      <Route path="/" element={<Task />} />
 
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Route>
+      <Route path="/" element={<LoginUI />} >
 
-        <Route
-          element={
-            <ProtectedUserRoute>
-              <Outlet />
-            </ProtectedUserRoute>
-          }
-        >
+        {/* <Route path="/" element={<Login />} /> */}
+        <Route path="/register" element={<Register />} />
+      </Route>
 
-          <Route path="/index/" element={<UserLayout />}>
-            <Route index element={<FlightFinder />} />
-            <Route path="ticket" element={<TicketUI />} >
-              <Route index element={<TicketList />} />
+      <Route
+        element={
+          <ProtectedUserRoute>
+            <Outlet />
+          </ProtectedUserRoute>
+        }
+      >
 
-              <Route path=":flight_id" element={<BookingForm />} />
+        <Route path="/index/" element={<UserLayout />}>
+          <Route index element={<FlightFinder />} />
+          <Route path="ticket" element={<TicketUI />} >
+            <Route index element={<TicketList />} />
 
-              <Route path="details/:ticket_id" element={<BookingForm />} />
+            <Route path=":flight_id" element={<BookingForm />} />
 
-            </Route>
-
-          </Route>
-          <Route path="/admin" element={<AdminLayout />} >
-            <Route path="flight" element={<Flight />}>
-              <Route index element={<FlightList />} />
-              <Route path="addflight" element={<AddFlight />} />
-              <Route path="addflight/:id" element={<AddFlight />} />
-            </Route>
-
-            <Route path="airline" element={<Airline />}>
-              <Route index element={<AirlineList />} />
-              <Route path="addairline" element={<AddAirline />} />
-              <Route path="addairline/:id" element={<AddAirline />} />
-            </Route>
+            <Route path="details/:ticket_id" element={<BookingForm />} />
 
           </Route>
 
         </Route>
+        <Route path="/admin" element={<AdminLayout />} >
+          <Route path="flight" element={<Flight />}>
+            <Route index element={<FlightList />} />
+            <Route path="addflight" element={<AddFlight />} />
+            <Route path="addflight/:id" element={<AddFlight />} />
+          </Route>
 
-      </Routes>
-    </BrowserRouter>
+          <Route path="airline" element={<Airline />}>
+            <Route index element={<AirlineList />} />
+            <Route path="addairline" element={<AddAirline />} />
+            <Route path="addairline/:id" element={<AddAirline />} />
+          </Route>
+          <Route path="user" element={<UserList />}></Route>
+        </Route>
+
+      </Route>
+
+    </Routes>
   );
 }

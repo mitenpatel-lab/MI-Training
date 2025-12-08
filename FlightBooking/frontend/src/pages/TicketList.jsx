@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from 'react'
 import { toast } from "react-toastify";
+import { getAlltickets } from '../../services/ticketService';
 export default function TicketList() {
     const [flights, setTickets] = useState([]);
     const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
 
     const deleteAirline = async (Id) => {
         try {
@@ -30,17 +30,19 @@ export default function TicketList() {
         }
     };
     const ticketList = async () => {
-        const res = await fetch(`http://localhost:3000/api/ticket?username=${username}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+            const res = await getAlltickets();
 
-        if (res.status === 401) {
-            logout();
-            return;
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+
+            setTickets(res.success ? res.ticketbooking : []);
+        } catch (err) {
+            console.error("API error:", err.response?.data || err);
+
         }
-
-        const data = await res.json();
-        setTickets(res.status === 200 ? data.ticketbooking : []);
 
     };
     useEffect(() => {

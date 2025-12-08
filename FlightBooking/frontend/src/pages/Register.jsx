@@ -26,18 +26,6 @@ export default function Register({ page }) {
         const data = await res.json();
 
         if (data.success) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("username", username);
-            localStorage.setItem("password", password);
-            localStorage.setItem("role", data.user.role);
-
-            setMessage(`Welcome ${username}! Redirecting...`);
-            setColor("text-green-600");
-
-            if (data.user.role === "admin") {
-                return navigate('/admin/flight');
-            }
-
             setTimeout(() => {
                 navigate('/index')
             }, 1000);

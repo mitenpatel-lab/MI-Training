@@ -18,7 +18,6 @@ export default function AddAirline() {
 
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
 
     function handleChange(e) {
         const { name, value } = e.target;
